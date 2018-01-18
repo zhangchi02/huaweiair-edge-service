@@ -36,25 +36,20 @@ public class EdgeDispatcher extends AbstractEdgeDispatcher {
 
 	@Override
 	public int getOrder() {
-		return 10000;
+		return 1;
 	}
 
 	@Override
 	public void init(Router router) {
-		String regex = "/([^\\\\/]+)/(.*)";
+		String regex = "/([^\\\\/]+)/rest/(.*)";
 		router.routeWithRegex(regex).handler(CookieHandler.create());
 		router.routeWithRegex(regex).handler(createBodyHandler());
 		router.routeWithRegex(regex).failureHandler(this::onFailure).handler(this::onRequest);
 	}
-
 	protected void onRequest(RoutingContext context) {
 		Map<String, String> pathParams = context.pathParams();
 		String microserviceName = microserviceNameMap.get(pathParams.get("param0"));
 		String path = "/"+pathParams.get("param1");
-		if(path.startsWith("/rest"))
-		{
-			path=path.substring(5);
-		}
 		EdgeInvocation edgeInvocation = new EdgeInvocation();
 		edgeInvocation.init(microserviceName, context, path, httpServerFilters);
 		edgeInvocation.edgeInvoke();
