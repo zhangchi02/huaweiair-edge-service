@@ -30,7 +30,7 @@ public class WebPageDispatcher extends AbstractEdgeDispatcher {
 
 	@Override
 	public void init(Router router) {
-		router.route("/*").handler(StaticHandler.create("static"));
+		router.route("/*").handler(StaticHandler.create("static").setDefaultContentEncoding("UTF-8"));
 //		router.route("/*").failureHandler(this::onFailure);
 	}
 

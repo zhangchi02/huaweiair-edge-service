@@ -15,5 +15,5 @@
 # limitations under the License.
 #
 
-com.huawei.huaweiair.edge.service.EdgeDispatcher
+com.huawei.huaweiair.edge.service.ApiDispatcher
 com.huawei.huaweiair.edge.service.WebPageDispatcher
