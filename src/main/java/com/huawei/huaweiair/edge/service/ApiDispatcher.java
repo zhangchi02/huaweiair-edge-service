@@ -29,12 +29,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
-import com.huawei.huaweiair.edge.service.auth.CustomerSession;
-import com.huawei.huaweiair.edge.service.auth.CustomerSessionInfo;
-
 import cse.gen.acmeair.customerServiceApp.login.login.TokenInfo;
+import cse.gen.acmeair.customerServiceApp.login.validateCustomer.CustomerSession;
+import cse.gen.acmeair.customerServiceApp.login.validateCustomer.CustomerSessionInfo;
 import io.servicecomb.common.rest.codec.RestObjectMapper;
 import io.servicecomb.edge.core.AbstractEdgeDispatcher;
 import io.servicecomb.edge.core.EdgeInvocation;
@@ -64,7 +65,21 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 		microserviceNameMap.put("bookings", "bookingServiceApp");
 		// microserviceNameMap.put("", "");
 	}
+   
+	
+	public ApiDispatcher() {
+		restTemplate.setErrorHandler(new ResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
+				return false;
+			}
 
+			@Override
+			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+			}
+		});
+	}
+    
 	@Override
 	public int getOrder() {
 		return 1;
