@@ -26,6 +26,11 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.servicecomb.common.rest.codec.RestObjectMapper;
+import org.apache.servicecomb.edge.core.AbstractEdgeDispatcher;
+import org.apache.servicecomb.edge.core.EdgeInvocation;
+import org.apache.servicecomb.provider.springmvc.reference.RestTemplateBuilder;
+import org.apache.servicecomb.swagger.invocation.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -33,14 +38,10 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
-import cse.gen.acmeair.customerServiceApp.login.login.TokenInfo;
-import cse.gen.acmeair.customerServiceApp.login.validateCustomer.CustomerSession;
-import cse.gen.acmeair.customerServiceApp.login.validateCustomer.CustomerSessionInfo;
-import io.servicecomb.common.rest.codec.RestObjectMapper;
-import io.servicecomb.edge.core.AbstractEdgeDispatcher;
-import io.servicecomb.edge.core.EdgeInvocation;
-import io.servicecomb.provider.springmvc.reference.RestTemplateBuilder;
-import io.servicecomb.swagger.invocation.Response;
+import com.acmeair.entities.TokenInfo;
+import com.acmeair.web.dto.CustomerSession;
+import com.acmeair.web.dto.CustomerSessionInfo;
+
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.Router;
@@ -59,14 +60,13 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 	private static final String CONFIG_PATH = "/info/config/";
 	private static final String LOADER_PATH = "/info/loader/";
 	private static final String SESSIONID_COOKIE_NAME = "sessionid";
-	private RestTemplate restTemplate=RestTemplateBuilder.create();
+	private RestTemplate restTemplate = RestTemplateBuilder.create();
 	static {
 		microserviceNameMap.put("customers", "customerServiceApp");
 		microserviceNameMap.put("bookings", "bookingServiceApp");
 		// microserviceNameMap.put("", "");
 	}
-   
-	
+
 	public ApiDispatcher() {
 		restTemplate.setErrorHandler(new ResponseErrorHandler() {
 			@Override
@@ -79,7 +79,7 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 			}
 		});
 	}
-    
+
 	@Override
 	public int getOrder() {
 		return 1;
@@ -101,95 +101,107 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 			throw new IllegalStateException("Failed to parse json in response body", e);
 		}
 	}
-public class Person{
-	public String name;
 
-	public String getName() {
-		return name;
+	public class Person {
+		public String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public static void main(String[] args) {
+		ApiDispatcher apiDispatcher = new ApiDispatcher();
+		Person person = apiDispatcher.new Person();
+		person.setName("tank");
+
+		JSONObject jsonObject = JSONObject.fromObject(person);
+		System.out.println(jsonObject.toString());
 	}
-	
-}
-public static void main(String[] args) {
-	ApiDispatcher apiDispatcher=new ApiDispatcher();
-	Person person=apiDispatcher.new Person();
-	person.setName("tank")	;
-	
-	JSONObject jsonObject = JSONObject.fromObject(person);
-	System.out.println(jsonObject.toString());
-}
+
 	protected void onRequest(RoutingContext context) {
-		Map<String, String> pathParams = context.pathParams();
-		String microserviceName = microserviceNameMap.get(pathParams.get("param0"));
-		String path = "/" + pathParams.get("param1");
-		if (path.endsWith(LOGIN_PATH)) {
-			EdgeInvocation edgeInvocation = new EdgeInvocation() {
-				protected void sendResponse(Response response) throws Exception {
-					if (response.isSuccessed()
-							&& (response.getResult() != null)) {
-						TokenInfo tokenInfo=(TokenInfo)response.getResult();
-						System.out.println(tokenInfo.getSessionid());
-						
-						JSONObject jsonObject = JSONObject.fromObject(response.getResult());
-						Map<String, String> cookies = jsonOf(context,jsonObject.toString());
-//						for (Map.Entry<String, String> entry : cookies.entrySet()) {
-//							Cookie cookie = Cookie.cookie(entry.getKey(), entry.getValue());
-							Cookie cookie = Cookie.cookie("sessionid", tokenInfo.getSessionid());
-							cookie.setPath("/");
-							context.addCookie(cookie);
-//						}
-//						context.setBody(Buffer.buffer("logged in"));
-//						context.response().setStatusCode(200);
-						context.response().headers().add("Content-Type", "application/json");
-						context.response().headers().add("Content-Length", ""+"logged in".length());
-							context.response().write(Buffer.buffer("logged in"));
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				Map<String, String> pathParams = context.pathParams();
+				String microserviceName = microserviceNameMap.get(pathParams.get("param0"));
+				String path = "/" + pathParams.get("param1");
+				if (path.endsWith(LOGIN_PATH)) {
+					EdgeInvocation edgeInvocation = new EdgeInvocation() {
+						protected void sendResponse(Response response) throws Exception {
+							if (response.isSuccessed() && (response.getResult() != null)) {
+								TokenInfo tokenInfo = (TokenInfo) response.getResult();
+								System.out.println(tokenInfo.getSessionid());
+
+								JSONObject jsonObject = JSONObject.fromObject(response.getResult());
+								Map<String, String> cookies = jsonOf(context, jsonObject.toString());
+								// for (Map.Entry<String, String> entry :
+								// cookies.entrySet()) {
+								// Cookie cookie = Cookie.cookie(entry.getKey(),
+								// entry.getValue());
+								Cookie cookie = Cookie.cookie("sessionid", tokenInfo.getSessionid());
+								cookie.setPath("/");
+								context.addCookie(cookie);
+								// }
+								// context.setBody(Buffer.buffer("logged in"));
+								// context.response().setStatusCode(200);
+								context.response().headers().add("Content-Type", "application/json");
+								context.response().headers().add("Content-Length", "" + "logged in".length());
+								context.response().write(Buffer.buffer("logged in"));
+								context.response().end();
+								logger.info("user login seccuessfully");
+							}
+
+						}
+					};
+					edgeInvocation.init(microserviceName, context, path, httpServerFilters);
+					edgeInvocation.edgeInvoke();
+					return;
+
+				}
+
+				if (path.endsWith(LOGOUT_PATH) || path.endsWith(LOADDB_PATH) || path.contains(CONFIG_PATH)
+						|| path.contains(LOADER_PATH)) {
+
+				} else {
+
+					Set<Cookie> cookies = context.cookies();
+					CustomerSession customerSession = null;
+					if (null != cookies && !cookies.isEmpty()) {
+						for (Cookie cookie : cookies) {
+							if (cookie.getName().equals(SESSIONID_COOKIE_NAME) && null != cookie.getValue()) {
+								customerSession = validateCustomerSession(cookie.getValue().trim());
+								break;
+							}
+						}
+					}
+
+					if (null == customerSession) {
+						logger.info("unauthenticated user.");
+						context.response().setStatusCode(HttpServletResponse.SC_FORBIDDEN);
 						context.response().end();
-						logger.info("user login seccuessfully");
-					}
+						return;
+					} else {
+						context.request().headers().add(LOGIN_USER, customerSession.getCustomerid());
+						logger.info("Customer {} validated with session id {}", customerSession.getCustomerid(),
+								customerSession.getId());
 
-				}
-			};
-			edgeInvocation.init(microserviceName, context, path, httpServerFilters);
-			edgeInvocation.edgeInvoke();
-			return;
-
-		}
-
-		if (path.endsWith(LOGOUT_PATH) || path.endsWith(LOADDB_PATH) || path.contains(CONFIG_PATH)
-				|| path.contains(LOADER_PATH)) {
-
-		} else {
-
-			Set<Cookie> cookies = context.cookies();
-			CustomerSession customerSession = null;
-			if (null != cookies && !cookies.isEmpty()) {
-				for (Cookie cookie : cookies) {
-					if (cookie.getName().equals(SESSIONID_COOKIE_NAME) && null != cookie.getValue()) {
-						customerSession = validateCustomerSession(cookie.getValue().trim());
-						break;
 					}
 				}
-			}
 
-			if (null == customerSession) {
-				logger.info("unauthenticated user.");
-				context.response().setStatusCode(HttpServletResponse.SC_FORBIDDEN);
-				context.response().end();
-				return;
-			} else {
-				context.request().headers().add(LOGIN_USER, customerSession.getCustomerid());
-				logger.info("Customer {} validated with session id {}", customerSession.getCustomerid(),
-						customerSession.getId());
+				EdgeInvocation edgeInvocation = new EdgeInvocation();
+				edgeInvocation.init(microserviceName, context, path, httpServerFilters);
+				edgeInvocation.edgeInvoke();
 
 			}
-		}
-
-		EdgeInvocation edgeInvocation = new EdgeInvocation();
-		edgeInvocation.init(microserviceName, context, path, httpServerFilters);
-		edgeInvocation.edgeInvoke();
+		}).start();
 	}
 
 	public CustomerSession validateCustomerSession(String sessionId) {

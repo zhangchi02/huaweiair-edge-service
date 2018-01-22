@@ -15,24 +15,8 @@
  * limitations under the License.
  */
 
-package com.huawei.huaweiair.edge.service;
+package com.huawei.huaweiair.edge.service.auth;
 
-import org.apache.servicecomb.edge.core.AbstractEdgeDispatcher;
-
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.StaticHandler;
-
-public class WebPageDispatcher extends AbstractEdgeDispatcher {
-
-	@Override
-	public int getOrder() {
-		return 2;
-	}
-
-	@Override
-	public void init(Router router) {
-		router.route("/*").handler(StaticHandler.create("static").setDefaultContentEncoding("UTF-8"));
-//		router.route("/*").failureHandler(this::onFailure);
-	}
-
+public interface Auth {
+  boolean auth(String info);
 }

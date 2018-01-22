@@ -10,9 +10,9 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>io.servicecomb</groupId>
+			   <groupId>org.apache.servicecomb</groupId>
 				<artifactId>java-chassis-dependencies</artifactId>
-				<version>0.5.0</version>
+				<version>0.6.0-SNAPSHOT</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -20,19 +20,19 @@
 	</dependencyManagement>
 	<dependencies>
 		<dependency>
-			<groupId>io.servicecomb</groupId>
+			<groupId>org.apache.servicecomb</groupId>
 			<artifactId>edge-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.servicecomb</groupId>
+			<groupId>org.apache.servicecomb</groupId>
 			<artifactId>handler-loadbalance</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.servicecomb</groupId>
+			<groupId>org.apache.servicecomb</groupId>
 			<artifactId>provider-pojo</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.servicecomb</groupId>
+			<groupId>org.apache.servicecomb</groupId>
 			<artifactId>provider-springmvc</artifactId>
 		</dependency>
 		<dependency>
