@@ -43,7 +43,7 @@ public class WebPageDispatcher extends AbstractEdgeDispatcher {
 	}
 
 	protected void onFailure(RoutingContext context) {
-		LOGGER.error("Route  failed,pls check the path : {}",context.normalisedPath());
+		LOGGER.error("Route failed,pls check the path : {}", context.normalisedPath());
 		HttpServerResponse response = context.response();
 		response.setStatusCode(Status.BAD_GATEWAY.getStatusCode());
 		response.setStatusMessage(Status.BAD_GATEWAY.getReasonPhrase());

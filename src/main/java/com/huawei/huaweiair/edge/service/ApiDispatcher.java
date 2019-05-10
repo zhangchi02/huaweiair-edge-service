@@ -17,7 +17,6 @@
 
 package com.huawei.huaweiair.edge.service;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +30,6 @@ import org.apache.servicecomb.swagger.invocation.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import com.acmeair.entities.TokenInfo;
@@ -83,7 +80,7 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 		String path = "/" + pathParams.get("param1");
 		if (path.endsWith(LOGIN_PATH)) {
 			EdgeInvocation edgeInvocation = new EdgeInvocation() {
-				protected void sendResponse(Response response) throws Exception {
+				protected void sendResponse(Response response) {
 					if (response.isSuccessed() && (response.getResult() != null)) {
 						TokenInfo tokenInfo = (TokenInfo) response.getResult();
 						Cookie cookie = Cookie.cookie("sessionid", tokenInfo.getSessionid());
@@ -95,7 +92,6 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 						context.response().end();
 						LOGGER.info("user login seccuessfully");
 					}
-
 				}
 			};
 			edgeInvocation.init(microserviceName, context, path, httpServerFilters);
@@ -129,10 +125,8 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 				context.request().headers().add(LOGIN_USER, customerSession.getCustomerid());
 				LOGGER.info("Customer {} validated with session id {}", customerSession.getCustomerid(),
 						customerSession.getId());
-
 			}
 		}
-
 		EdgeInvocation edgeInvocation = new EdgeInvocation();
 		edgeInvocation.init(microserviceName, context, path, httpServerFilters);
 		edgeInvocation.edgeInvoke();
@@ -146,7 +140,6 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 		ResponseEntity<CustomerSessionInfo> responseEntity = restTemplate.postForEntity(
 				"cse://customerServiceApp" + "/api/login/validate", validationRequest(sessionId),
 				CustomerSessionInfo.class);
-
 		if (!responseEntity.getStatusCode().is2xxSuccessful()) {
 			LOGGER.warn("No such customer found with session id {}", sessionId);
 			return null;
@@ -159,5 +152,4 @@ public class ApiDispatcher extends AbstractEdgeDispatcher {
 		map.put("sessionId", sessionId);
 		return map;
 	}
-
 }
