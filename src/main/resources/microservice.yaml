@@ -40,7 +40,7 @@ cse:
   handler:
     chain:
       Consumer:
-        default: loadbalance,bizkeeper-consumer,perf-stats,tracing-consumer,sla-consumer,qps-flowcontrol-consumer
+        default: loadbalance,bizkeeper-consumer,perf-stats,qps-flowcontrol-consumer
         service:
           auth: loadbalance
   executors:
