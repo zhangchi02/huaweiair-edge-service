@@ -23,12 +23,16 @@ service_description:
 cse:
   service:
     registry:
-      address: http://100.94.7.161:30100
+      address: https://cse.cn-north-1.myhuaweicloud.com:443
       instance:
         watch: false
-  
+  config:
+    client:
+      serverUri: https://cse.cn-north-1.myhuaweicloud.com:443
+      refreshMode: 1
+      refresh_interval: 5000
   rest:
-    address: 0.0.0.0:8088
+    address: 0.0.0.0:8080
     server:
       thread-count: 8
     client:
@@ -36,7 +40,7 @@ cse:
   handler:
     chain:
       Consumer:
-        default: loadbalance,bizkeeper-consumer,qps-flowcontrol-consumer
+        default: loadbalance,bizkeeper-consumer,perf-stats,qps-flowcontrol-consumer
         service:
           auth: loadbalance
   executors:
